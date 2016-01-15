@@ -124,8 +124,8 @@ XCodeProject.prototype.buildProject = function(callback)
 	var buildableFileName = this.buildableFileName();
 	var buildableDirectory = path.dirname(this.buildableFilePath);
 
-	var params = buildableFileName;
-	if (this.isWorkspace)
+	var params = '';
+	if (this.isWorkspace())
 	{
 		var schemeName = this.buildConfig.scehemeName;
 		var schemePart = ' -scheme '+schemeName+' ';
@@ -135,8 +135,12 @@ XCodeProject.prototype.buildProject = function(callback)
 
 		params = targetBuildPart+schemePart;
 	}
+	else
+	{
+		params = ' -project '+buildableFileName;
+	}
 	
-	var buildCommand = "xcodebuild "+params+"CONFIGURATION_BUILD_DIR='"+this.absoluateOutputDirectory+"'";
+	var buildCommand = "xcodebuild "+params+" CONFIGURATION_BUILD_DIR='"+this.absoluateOutputDirectory+"'";
 
 	// xcodebuild -workspace JolpatX.xcworkspace -scheme JolpatX CONFIGURATION_BUILD_DIR=Builds/JolpatX/dev2/output
 	// xcodebuild -workspace JolpatX.xcworkspace -scheme JolpatX CONFIGURATION_BUILD_DIR=/Users/amtourky/Projects/Sparkle Server/Builds/JolpatX/dev2/output
