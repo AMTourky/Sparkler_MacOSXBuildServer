@@ -1,0 +1,26 @@
+{
+  "name": "Mac_OS_X_Build_Server",
+  "version": "0.0.1",
+  "description": "A NodeJS Mac OS X Build server which provide RSS feed for Sparkle software update package",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [
+    "build_server",
+    "nodejs",
+    "mac_os_x",
+    "sparkle",
+    "AMTourky"
+    ],
+    "dependencies": {
+      "async": "^1.5.2",
+      "node-inspector": "^0.12.5",
+      "recursive-readdir": "^1.2.1",
+      "restify": "^4.0.3",
+      "walk": "^2.3.9",
+      "glob": "^6.0.4"
+      },
+      "author": "AMTourky",
+      "license": "ISC"
+    }
