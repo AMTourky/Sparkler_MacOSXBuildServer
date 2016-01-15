@@ -140,8 +140,15 @@ XCodeBuilder.prototype.didGitProject = function(callback)
 XCodeBuilder.prototype.loadBuildConfig = function()
 {
 	var buildConfigFilePath = path.join(this.projectDirectory, buildConfigFileName);
-	var buildConfig = require('./'+buildConfigFilePath).config;
-	return buildConfig;
+	try
+	{
+		var buildConfig = require('./'+buildConfigFilePath).config;
+		return buildConfig;
+	}
+	catch (error)
+	{
+		return null;
+	}
 };
 
 XCodeBuilder.prototype.createFolders = function(callback)
