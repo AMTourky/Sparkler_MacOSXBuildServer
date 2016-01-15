@@ -80,7 +80,7 @@ GitController.prototype.clone = function(callback)
 					else
 					{
 						console.log('git clone: ' + stdout);
-						_this.setRepoDirectory();
+						_this.setRepoDirectory(callback);
 					}
 				});
 			}
@@ -208,15 +208,10 @@ GitController.prototype.getLastTag = function(callback)
 	this.executeCommand('git describe --tags $(git rev-list --tags --max-count=1)', function(error, stdout) 
 	{
 		console.log('git last tag: ' + stdout);
-		if(error) 
-		{
-			callback(error);
-		}
-		else 
-		{
-			stdout = stdout.replace(/\s+/g,'');
-			callback(null, stdout);
-		}
+		stdout = stdout || '';
+		stdout = stdout.replace(/\s+/g,'');
+		callback(null, stdout);
+		
 	});
 };
 
