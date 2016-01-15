@@ -147,7 +147,7 @@ XCodeBuilder.prototype.loadBuildConfig = function()
 	}
 	catch (error)
 	{
-		return null;
+		return {};
 	}
 };
 
