@@ -74,6 +74,11 @@ XCodeProject.prototype.setBuildableFilePath = function(callback)
 	{
 		if (  Utilities.stringEndsWith(root, workspaceExtension) )
 		{
+			if ( dotXcodeRoot && root.indexOf(dotXcodeRoot) == -1)
+			{
+				// no, wrong file, it's a .xcworkspace inside the .xcodeproj
+				next();
+			}
 			_this.buildableFilePath = root;
 
 			console.log('Found the .xcworkspace');
@@ -83,7 +88,7 @@ XCodeProject.prototype.setBuildableFilePath = function(callback)
 		{
 			console.log('Found the .xcodeproj');
 			_this.buildableFilePath = root;
-			dotXcodeRoot = path.join(root, '..');
+			dotXcodeRoot = root;
 			next();
 		}
 		else if ( _this.buildableFilePath && dotXcodeRoot && dotXcodeRoot != root )
@@ -95,7 +100,6 @@ XCodeProject.prototype.setBuildableFilePath = function(callback)
 		{
 			next();
 		}
-		console.log('File: ', fileStats.name, '\n Root: ', root);
 
 	});
 
