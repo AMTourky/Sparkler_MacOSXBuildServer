@@ -26,6 +26,15 @@ XCodeProject.prototype.buildableFileName = function()
 	return path.basename(this.buildableFilePath);
 }
 
+XCodeProject.prototype.zipFileName = function()
+{
+	var zipName = path.basename(this.buildableFilePath).replace(path.extname(this.buildableFilePath), '')+'_v';
+	zipName += self.version.major+'.';
+	zipName += self.version.minor+'.';
+	zipName += self.version.batch;
+	return zipName;
+}
+
 XCodeProject.prototype.isWorkspace = function()
 {
 	return this.buildableFileName().indexOf(workspaceExtension) != -1;
@@ -168,7 +177,7 @@ XCodeProject.prototype.didBuildProject = function(callback)
 	async.series(
 		[
 		function(callback){ Utilities.deleteAllInDirExceptExtensions(_this.absoluateOutputDirectory, ['app', 'xml', 'zip'], callback); },
-		function(callback){ _this.zipTheAppToName(this.buildableFileName()+this.version, callback); }
+		function(callback){ _this.zipTheAppToName(callback); }
 		],
 		function(error)
 		{
@@ -182,15 +191,14 @@ XCodeProject.prototype.didBuildProject = function(callback)
 			callback(error);
 		}
 		);
-	callback();
 };
 
-XCodeProject.prototype.zipTheAppToName = function(name, callback)
+XCodeProject.prototype.zipTheAppToName = function(callback)
 {
-	exec('zip -r '+name+' *'+builtPackageExtension, {cwd: self.outputDirectory},function(error)
-		{
-
-		}
+	exec('zip -r '+this.zipFileName()+' *'+builtPackageExtension, {cwd: this.outputDirectory},function(error)
+	{
+		callback();
+	}
 	);
 };
 
