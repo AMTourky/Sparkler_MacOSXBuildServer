@@ -5,6 +5,7 @@ var path = require('path');
 var Utilities = require('./Utilities');
 var GitController = require('./GitController').GitController;
 var XCodeProject = require('./XCodeProject').XCodeProject;
+var Sparkler = require('./Sparkler').Sparkler;
 
 var buildsDir = './Builds/';
 var sourceDirName = 'source';
@@ -24,6 +25,7 @@ var XCodeBuilder = function (projectName, branchName, isMajor, isMinor, isBatch)
 	this.currentVersion = {};
 	this.newVersion = {};
 	this.buildConfig = {};
+	this.sparkler = {};
 };
 
 
@@ -104,12 +106,45 @@ XCodeBuilder.prototype.setVersion = function(callback)
 
 XCodeBuilder.prototype.versionFromTag = function(tag)
 {
-	return {major: 1, minor: 1, batch: 1};
+	tag = tag || '';
+	var obIndex = tag.indexOf('(');
+	var cbIndex = tag.indexOf(')');
+	if (obIndex != -1 && cbIndex != -1 && cbIndex > obIndex && tag.substring(obIndex+1, cbIndex))
+	{
+		var versionComponents = tag.substring(obIndex+1, cbIndex).split('.');
+		return {major: versionComponents[0], minor: versionComponents[1], batch: versionComponents[2]};
+	}
+	else
+	{
+		return {major: 0, minor: 0, batch: 0};
+	}
+};
+
+XCodeBuilder.prototype.tagFromVersion = function(version)
+{
+	// version(0.0.0)
+	return 'version('+version.major+'.'+version.minor+'.'+version.batch+')';
 };
 
 XCodeBuilder.prototype.incrementedVersion = function()
 {
-	return {major: 1, minor: 2, batch: 1};
+	var version = {major: this.currentVersion.major, minor: this.currentVersion.minor, batch: this.currentVersion.batch};
+	if (this.isMajor)
+	{
+		version.major = version.major+1;
+		version.minor = 0;
+		version.batch = 0;
+	}
+	else if (this.isMinor)
+	{
+		version.minor = version.minor+1;
+		version.batch = 0;
+	}
+	else
+	{
+		version.batch = version.batch+1;
+	}
+	return version;
 };
 
 XCodeBuilder.prototype.willBuild = function(callback)
@@ -117,15 +152,41 @@ XCodeBuilder.prototype.willBuild = function(callback)
 	this.setVersion(callback);
 };
 
+XCodeBuilder.prototype.privDSAFilePath = function()
+{
+	return path.join(this.projectDirectory, this.buildConfig.dsaFileName || 'dsa_priv.pem');
+};
+
 XCodeBuilder.prototype.didBuild = function(callback)
 {
-	this.updateVersion(callback);
+	var zipFilePath = path.join( this.xcodeProject.outputDirectory, this.xcodeProject.zipFileName());
+	this.sparkler = new Sparkler(zipFilePath,  this.privDSAFilePath(), this.xcodeProject.versionString());
+	var _this = this;
+	async.series(
+		[
+		function(callback){ _this.updateVersion(callback); },
+		function(callback){ _this.sparkler.signZipFile(callback); },
+		function(callback){ _this.sparkler.createAppcastXMLFile(callback); },
+
+		],
+		function(error)
+		{
+			if (error)
+			{
+				console.log(error);
+			}
+			else
+			{
+			}
+			callback(error);
+		}
+		);
 };
 
 XCodeBuilder.prototype.updateVersion = function(callback)
 {
 	console.log("pushing new tag version");
-	this.gitController.addTag(this.newVersion, callback);
+	this.gitController.addTag(this.tagFromVersion(this.newVersion), callback);
 }
 
 

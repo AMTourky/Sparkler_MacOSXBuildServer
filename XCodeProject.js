@@ -24,16 +24,19 @@ var XCodeProject = function(projectDirectory, outputDirectory, buildConfig)
 XCodeProject.prototype.buildableFileName = function()
 {
 	return path.basename(this.buildableFilePath);
-}
+};
 
 XCodeProject.prototype.zipFileName = function()
 {
-	var zipName = path.basename(this.buildableFilePath).replace(path.extname(this.buildableFilePath), '')+'_v';
-	zipName += self.version.major+'.';
-	zipName += self.version.minor+'.';
-	zipName += self.version.batch;
+	var zipName = path.basename(this.buildableFilePath).replace(path.extname(this.buildableFilePath), '');
+	zipName += '_v'+this.versionString()+'.zip';
 	return zipName;
-}
+};
+
+XCodeProject.prototype.versionString = function()
+{
+	return this.version.major+'.'+this.version.minor+'.'+this.version.batch;
+};
 
 XCodeProject.prototype.isWorkspace = function()
 {
