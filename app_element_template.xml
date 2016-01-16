@@ -1,0 +1,12 @@
+<item>
+	<title>{{title}}</title>
+	<description><![CDATA[]]></description>
+	<pubDate>{{now}}</pubDate>
+	<enclosure 
+		url="{{{url}}}" 
+		sparkle:version='{{version}}' 
+		sparkle:shortVersionString='{{version}}' 
+		sparkle:dsaSignature="{{{dsaSignature}}}" 
+		length="{{length}}" 
+		type="application/octet-stream"/>
+</item>

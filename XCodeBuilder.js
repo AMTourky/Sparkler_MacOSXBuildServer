@@ -165,8 +165,10 @@ XCodeBuilder.prototype.didBuild = function(callback)
 	async.series(
 		[
 		function(callback){ _this.updateVersion(callback); },
+		function(callback){ _this.sparkler.willSparkle(callback); },
 		function(callback){ _this.sparkler.signZipFile(callback); },
 		function(callback){ _this.sparkler.createAppcastXMLFile(callback); },
+		function(callback){ _this.sparkler.didSparkle(callback); },
 
 		],
 		function(error)

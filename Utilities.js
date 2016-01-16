@@ -126,5 +126,3 @@ var deleteFile = function(filePath, callback)
 {
 	fs.unlink(filePath, callback);
 };
-
-
