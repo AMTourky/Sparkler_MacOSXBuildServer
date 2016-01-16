@@ -154,7 +154,7 @@ XCodeProject.prototype.buildProject = function(callback)
 	// xcodebuild -workspace JolpatX.xcworkspace -scheme JolpatX CONFIGURATION_BUILD_DIR=Builds/JolpatX/dev2/output
 	// xcodebuild -workspace JolpatX.xcworkspace -scheme JolpatX CONFIGURATION_BUILD_DIR=/Users/amtourky/Projects/Sparkle Server/Builds/JolpatX/dev2/output
 	
-	exec(buildCommand, {cwd: buildableDirectory, maxBuffer: 10*1024*1024}, function(error, stdout, stderr) 
+	exec(buildCommand, {cwd: buildableDirectory, maxBuffer: 100*1024*1024}, function(error, stdout, stderr) 
 	{
 		if(error) 
 		{
