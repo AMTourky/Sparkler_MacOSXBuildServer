@@ -5,19 +5,25 @@ var exec = require('child_process').exec;
 var path = require('path');
 var async = require('async');
 var Walker = require('walk');
+var fs = require('fs');
+var config = require('./config').config;
+
 var walkingOptions = {filters: ['.git', 'Pods']};
 
 var workspaceExtension = '.xcworkspace';
 var xcodeProjectExtension = '.xcodeproj';
 var builtPackageExtension = '.app';
 
-var XCodeProject = function(projectDirectory, outputDirectory, buildConfig)
+var XCodeProject = function(projectName, branch, projectDirectory, outputDirectory, buildConfig)
 {
+	this.projectName = projectName;
+	this.branch = branch;
 	this.projectDirectory = projectDirectory;
 	this.outputDirectory = outputDirectory;
 	this.absoluateOutputDirectory = path.join(__dirname, this.outputDirectory);
 	this.buildConfig = buildConfig;
 	this.buildableFilePath = '';// .xcodeproj OR .xcworkspace
+	this.infoPlistFilePath = path.join(this.projectDirectory, buildConfig.plistFilePathRelative);
 	this.version = {};
 };
 
@@ -122,21 +128,69 @@ XCodeProject.prototype.setBuildableFilePath = function(callback)
 
 XCodeProject.prototype.willBuildProject = function(callback)
 {
-	this.changePlistFile(callback);
+	this.updatePlistFile(callback);
 };
 
 
 
-XCodeProject.prototype.changePlistFile = function(callback)
+XCodeProject.prototype.updatePlistFile = function(callback)
 {
-	callback();
+	var _this = this;
+	async.waterfall(
+		[
+		function(callback)
+		{
+			fs.readFile(_this.infoPlistFilePath, function(error, data)
+				{
+					if(error)
+					{
+						callback(error);
+					}
+					else
+					{
+						callback(null, data.toString());
+					}
+				});
+		}, 
+		function(plistInfo, callback)
+		{
+			_this.updatePlistInfo(plistInfo, callback);
+		},
+		function(plistInfo, callback)
+		{
+			fs.writeFile(_this.infoPlistFilePath, plistInfo, callback);
+		}
+		],
+		callback
+		);
 };
 
+
+XCodeProject.prototype.updatePlistInfo = function(plistInfo, callback)
+{
+	console.log('updating plist info: ', plistInfo);
+	var lines = plistInfo.split('\n');
+
+	for(var i = 0 ; i < lines.length ; i++)
+	{
+		var line = lines[i];
+		if ( line.indexOf('SUFeedURL') != -1 )
+		{
+			lines[i+1] = '\t<string>http://'+config.serverAddress+'/feed?projectName='+this.projectName+'&amp;branch='+this.branch+'</string>';
+			i++;
+		}
+		else if ( line.indexOf('CFBundleVersion') != -1 || line.indexOf('CFBundleShortVersionString') != -1 )
+		{
+			lines[i+1] = '\t<string>'+this.versionString()+'</string>';
+			i++;
+		}
+	}
+	plistInfo = lines.join('\n');
+	callback(null, plistInfo);
+};
 
 XCodeProject.prototype.buildProject = function(callback)
 {
-	// this.outputDirectory = "/Users/amtourky/Projects/Sparkle Server/Builds/JolpatX/dev2/output";
-
 	var buildableFileName = this.buildableFileName();
 	var buildableDirectory = path.dirname(this.buildableFilePath);
 
@@ -158,9 +212,6 @@ XCodeProject.prototype.buildProject = function(callback)
 	
 	var buildCommand = "xcodebuild "+params+" CONFIGURATION_BUILD_DIR='"+this.absoluateOutputDirectory+"'";
 
-	// xcodebuild -workspace JolpatX.xcworkspace -scheme JolpatX CONFIGURATION_BUILD_DIR=Builds/JolpatX/dev2/output
-	// xcodebuild -workspace JolpatX.xcworkspace -scheme JolpatX CONFIGURATION_BUILD_DIR=/Users/amtourky/Projects/Sparkle Server/Builds/JolpatX/dev2/output
-	
 	exec(buildCommand, {cwd: buildableDirectory, maxBuffer: 100*1024*1024}, function(error, stdout, stderr) 
 	{
 		if(error) 
@@ -171,7 +222,7 @@ XCodeProject.prototype.buildProject = function(callback)
 		}
 		else 
 		{
-			console.log('success command: ', stdout);
+			// console.log('success command: ', stdout);
 			callback(null, stdout);
 		}
 	});

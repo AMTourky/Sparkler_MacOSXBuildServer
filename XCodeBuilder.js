@@ -116,7 +116,7 @@ XCodeBuilder.prototype.versionFromTag = function(tag)
 	}
 	else
 	{
-		return {major: 0, minor: 0, batch: 0};
+		return {major: 0, minor: 0, batch: 2};
 	}
 };
 
@@ -196,7 +196,7 @@ XCodeBuilder.prototype.didGitProject = function(callback)
 {
 	this.projectDirectory = this.gitController.repoDirectory;
 	this.buildConfig = this.loadBuildConfig();
-	this.xcodeProject = new XCodeProject(this.projectDirectory, path.join(buildsDir, this.projectName, this.branchName, outputDirName), this.buildConfig);
+	this.xcodeProject = new XCodeProject(this.projectName, this.branchName, this.projectDirectory, path.join(buildsDir, this.projectName, this.branchName, outputDirName), this.buildConfig);
 	callback();
 };
 
