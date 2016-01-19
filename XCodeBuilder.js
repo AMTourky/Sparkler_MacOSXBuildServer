@@ -50,11 +50,12 @@ XCodeBuilder.prototype.build = function(callback)
 			if (error)
 			{
 				console.log(error);
+				callback(error);
 			}
 			else
 			{
+				callback(null, 'Project built successfully');
 			}
-			callback(error);
 		}
 		);
 
@@ -72,14 +73,15 @@ XCodeBuilder.prototype.willGitProject = function(callback)
 			if (error)
 			{
 				console.log(error);
+				callback('Failed to create folders structure');
 			}
 			else
 			{
 				console.log('success');
 				var repoURL = config[_this.projectName].gitRepoURL;
 				_this.gitController = new GitController(_this.projectDirectory, repoURL, _this.branchName);
+				callback(error);
 			}
-			callback(error);
 		}
 		);
 	}
@@ -92,7 +94,8 @@ XCodeBuilder.prototype.setVersion = function(callback)
 	{
 		if (error)
 		{
-			callback(error);
+			console.log(error);
+			callback('Failed to set build version!');
 		}
 		else
 		{
@@ -107,8 +110,8 @@ XCodeBuilder.prototype.setVersion = function(callback)
 XCodeBuilder.prototype.versionFromTag = function(tag)
 {
 	tag = tag || '';
-	var obIndex = tag.indexOf('(');
-	var cbIndex = tag.indexOf(')');
+	var obIndex = tag.indexOf('{');
+	var cbIndex = tag.indexOf('}');
 	if (obIndex != -1 && cbIndex != -1 && cbIndex > obIndex && tag.substring(obIndex+1, cbIndex))
 	{
 		var versionComponents = tag.substring(obIndex+1, cbIndex).split('.');
@@ -116,14 +119,14 @@ XCodeBuilder.prototype.versionFromTag = function(tag)
 	}
 	else
 	{
-		return {major: 0, minor: 0, batch: 2};
+		return {major: 0, minor: 0, batch: 0};
 	}
 };
 
 XCodeBuilder.prototype.tagFromVersion = function(version)
 {
 	// version(0.0.0)
-	return 'version('+version.major+'.'+version.minor+'.'+version.batch+')';
+	return 'build_version{'+version.major+'.'+version.minor+'.'+version.batch+'}';
 };
 
 XCodeBuilder.prototype.incrementedVersion = function()
@@ -131,18 +134,18 @@ XCodeBuilder.prototype.incrementedVersion = function()
 	var version = {major: this.currentVersion.major, minor: this.currentVersion.minor, batch: this.currentVersion.batch};
 	if (this.isMajor)
 	{
-		version.major = version.major+1;
+		version.major = parseInt(version.major)+1;
 		version.minor = 0;
 		version.batch = 0;
 	}
 	else if (this.isMinor)
 	{
-		version.minor = version.minor+1;
+		version.minor = parseInt(version.minor)+1;
 		version.batch = 0;
 	}
 	else
 	{
-		version.batch = version.batch+1;
+		version.batch = parseInt(version.batch)+1;
 	}
 	return version;
 };
@@ -173,13 +176,6 @@ XCodeBuilder.prototype.didBuild = function(callback)
 		],
 		function(error)
 		{
-			if (error)
-			{
-				console.log(error);
-			}
-			else
-			{
-			}
 			callback(error);
 		}
 		);
@@ -188,7 +184,27 @@ XCodeBuilder.prototype.didBuild = function(callback)
 XCodeBuilder.prototype.updateVersion = function(callback)
 {
 	console.log("pushing new tag version");
-	this.gitController.addTag(this.tagFromVersion(this.newVersion), callback);
+	var _this = this;
+	var tag = _this.tagFromVersion(_this.newVersion);
+	async.series(
+		[
+		function(callback){ _this.gitController.addTag(tag, callback); },
+		function(callback){ _this.gitController.pushTag(tag, callback); }
+
+		],
+		function(error)
+		{
+			if (error)
+			{
+				console.log(error);
+				callback('the latest branch already built, please commit new changes');
+			}
+			else
+			{
+				callback();
+			}
+		}
+		);
 }
 
 

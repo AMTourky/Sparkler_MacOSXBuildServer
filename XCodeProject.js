@@ -65,11 +65,12 @@ XCodeProject.prototype.build = function(version, callback)
 			if (error)
 			{
 				console.log(error);
+				callback('Failed to build project');
 			}
 			else
 			{
+				callback();
 			}
-			callback(error);
 		}
 		);
 };
@@ -168,7 +169,6 @@ XCodeProject.prototype.updatePlistFile = function(callback)
 
 XCodeProject.prototype.updatePlistInfo = function(plistInfo, callback)
 {
-	console.log('updating plist info: ', plistInfo);
 	var lines = plistInfo.split('\n');
 
 	for(var i = 0 ; i < lines.length ; i++)

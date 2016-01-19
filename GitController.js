@@ -49,7 +49,14 @@ GitController.prototype.setRepoDirectory = function(callback)
 		],
 		function(error, result)
 		{
-			callback(error);
+			if (error)
+			{
+				callback('Failed to set repo directory!');
+			}
+			else
+			{
+				callback();
+			}
 		}
 		);
 };
@@ -58,7 +65,7 @@ GitController.prototype.setRepoDirectory = function(callback)
 
 GitController.prototype.clone = function(callback)
 {
-	console.log('check clone');
+	console.log('clonning git repo');
 	var _this = this;
 	async.waterfall(
 		[
@@ -72,14 +79,12 @@ GitController.prototype.clone = function(callback)
 			{
 				_this.executeCommand('git clone -b '+_this.branchName+' '+_this.repoURL,  function(error, stdout) 
 				{
-					console.log('cloned error: ', error);
 					if (error) 
 					{
 						callback(error);
 					}
 					else
 					{
-						console.log('git clone: ' + stdout);
 						_this.setRepoDirectory(callback);
 					}
 				});
@@ -94,7 +99,7 @@ GitController.prototype.clone = function(callback)
 		{
 			if (error)
 			{
-				callback(error);
+				callback("Failed to clone project");
 			}
 			else
 			{
@@ -158,6 +163,7 @@ GitController.prototype.checkout = function(callback)
 					console.log('git checkout: ' + stdout);
 					if(error) 
 					{
+						console.log(error);
 						callback(error);
 					}
 					else 
@@ -176,7 +182,7 @@ GitController.prototype.checkout = function(callback)
 		{
 			if (error)
 			{
-				callback(error);
+				callback("Failed to checout");
 			}
 			else
 			{
@@ -194,7 +200,8 @@ GitController.prototype.pull = function(callback)
 		console.log('git checkout: ' + stdout);
 		if(error) 
 		{
-			callback(error);
+			console.log(error);
+			callback('Failed to pull!');
 		}
 		else 
 		{
@@ -211,63 +218,57 @@ GitController.prototype.getLastTag = function(callback)
 		stdout = stdout || '';
 		stdout = stdout.replace(/\s+/g,'');
 		callback(null, stdout);
-		
 	});
 };
 
 
 GitController.prototype.addTag = function(tag, callback)
 {
-
 	console.log('adding tag');
-	callback();
-	// this.executeCommand('git tag '+tag, function(error, stdout) 
-	// {
-	// 	console.log('git add tag: ' + stdout);
-	// 	if(error) 
-	// 	{
-	// 		callback(error);
-	// 	}
-	// 	else 
-	// 	{
-	// 		callback(stdout);
-	// 	}
-	// });
+	this.executeCommand('git tag '+tag, function(error, stdout) 
+	{
+		if(error) 
+		{
+			callback(error);
+		}
+		else 
+		{
+			callback(stdout);
+		}
+	});
 };
 
 
-GitController.prototype.pushTags = function(callback)
+GitController.prototype.pushTag = function(tag, callback)
 {
 	console.log('pushing tag');
-	callback();
-	// this.executeCommand('git push origin --tags', function(error, stdout) 
-	// {
-	// 	console.log('git push tag: ' + stdout);
-	// 	if(error) 
-	// 	{
-	// 		callback(error);
-	// 	}
-	// 	else 
-	// 	{
-	// 		callback();
-	// 	}
-	// });
+	this.executeCommand('git push origin '+tag, function(error, stdout) 
+	{
+		if(error) 
+		{
+			callback(error);
+		}
+		else 
+		{
+			callback();
+		}
+	});
 };
 
 GitController.prototype.executeCommand = function(command, callback)
 {
-	console.log('exec command: ', command);
+	console.log('execute command: ', command);
 	exec(command, {cwd: this.repoDirectory}, function(error, stdout, stderr) 
 	{
 		if(error) 
 		{
-			console.log(error);
+			console.log('error');
 			console.log(stderr);
 			callback(error);
 		}
 		else 
 		{
-			console.log('success command: ', stdout);
+			console.log('command result: ', stdout);
 			callback(null, stdout);
 		}
 	});
