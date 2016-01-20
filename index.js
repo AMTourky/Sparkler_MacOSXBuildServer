@@ -23,7 +23,10 @@ server.get('/build', function (req, res, next)
 	if (!projectsInProgress[ projectKey ] )
 	{
 		projectsInProgress[ projectKey ] = res;
-		var xcodeBuilder = new XCodeBuilder(req.params.projectName, req.params.branchName);
+		var major = req.params.major || false;
+		var minor = req.params.minor || false;
+		var batch = req.params.batch || true;
+		var xcodeBuilder = new XCodeBuilder(req.params.projectName, req.params.branchName, major, minor, batch);
 		xcodeBuilder.build(function(error, message)
 			{
 				console.log('Build end, error: ', error, ' Message: ', message);
