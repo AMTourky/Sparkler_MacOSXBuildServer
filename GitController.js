@@ -233,6 +233,7 @@ GitController.prototype.addTag = function(tag, callback)
 		}
 		else 
 		{
+
 			callback(stdout);
 		}
 	});
@@ -255,6 +256,40 @@ GitController.prototype.pushTag = function(tag, callback)
 	});
 };
 
+GitController.prototype.getCurrentCommitID = function(callback)
+{
+	
+	this.executeCommand( 'git rev-parse HEAD', function(error, stdout) 
+	{
+		if(error) 
+		{
+			callback(error);
+		}
+		else 
+		{
+			stdout = stdout.replace(/\s+/g,'');
+			callback(null, stdout);
+		}
+	});
+};
+
+GitController.prototype.getCommitIDWithTag = function(tag, callback)
+{
+	this.executeCommand( 'git rev-list -1 ' + tag, function(error, stdout) 
+	{
+		if(error) 
+		{
+			callback(error);
+		}
+		else 
+		{
+			stdout = stdout.replace(/\s+/g,'');
+			callback(null, stdout);
+		}
+	});
+};
+
+
 GitController.prototype.executeCommand = function(command, callback)
 {
 	console.log('execute command: ', command);
@@ -273,5 +308,7 @@ GitController.prototype.executeCommand = function(command, callback)
 		}
 	});
 };
+
+
 
 exports.GitController = GitController;

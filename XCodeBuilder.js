@@ -152,7 +152,74 @@ XCodeBuilder.prototype.incrementedVersion = function()
 
 XCodeBuilder.prototype.willBuild = function(callback)
 {
-	this.setVersion(callback);
+	var _this = this;
+	async.series(
+		[
+		function(callback){ _this.setVersion(callback); },
+		function(callback){ _this.canBuild(callback); }
+		],
+		function(error)
+		{
+			callback(error);
+		}
+		);
+};
+
+XCodeBuilder.prototype.canBuild = function(callback)
+{
+	// current commit must be not tagged with the current version (to avoid building an already built commit)
+	// git rev-parse HEAD
+	// build_version{0.0.3}
+
+	var currnetCommitID = '';
+	var taggedCommitID = '';
+
+	var _this = this;
+	async.series(
+		[
+		function(callback)
+		{ 
+			_this.gitController.getCurrentCommitID(function(error, commitID)
+				{
+					if (error)
+					{
+						callback(error);
+					}
+					else
+					{
+						currnetCommitID = commitID;
+						callback();
+					}
+				}); 
+		},
+		function(callback)
+		{
+			_this.gitController.getCommitIDWithTag(_this.tagFromVersion(_this.currentVersion), function(error, commitID)
+				{
+					if (error)
+					{
+						callback(error);
+					}
+					else
+					{
+						taggedCommitID = commitID;
+						callback();
+					}
+				}); 
+		}
+		],
+		function(error)
+		{
+			if(error || taggedCommitID == currnetCommitID)
+			{
+				callback('Current branch already built, please commit new changes first');
+			}
+			else
+			{
+				callback();
+			}
+		}
+		);
 };
 
 XCodeBuilder.prototype.privDSAFilePath = function()
@@ -183,29 +250,22 @@ XCodeBuilder.prototype.didBuild = function(callback)
 
 XCodeBuilder.prototype.updateVersion = function(callback)
 {
-	console.log("pushing new tag version");
+	console.log('pushing new tag version');
 	var _this = this;
 	var tag = _this.tagFromVersion(_this.newVersion);
 	async.series(
 		[
 		function(callback){ _this.gitController.addTag(tag, callback); },
 		function(callback){ _this.gitController.pushTag(tag, callback); }
-
 		],
 		function(error)
 		{
-			if (error)
-			{
-				console.log(error);
-				callback('the latest branch already built, please commit new changes');
-			}
-			else
-			{
-				callback();
-			}
+
+			console.log(error);
+			callback(error);
 		}
 		);
-}
+};
 
 
 XCodeBuilder.prototype.didGitProject = function(callback)
