@@ -176,7 +176,7 @@ XCodeProject.prototype.updatePlistInfo = function(plistInfo, callback)
 		var line = lines[i];
 		if ( line.indexOf('SUFeedURL') != -1 )
 		{
-			lines[i+1] = '\t<string>http://'+config.serverAddress+'/feed?projectName='+this.projectName+'&amp;branch='+this.branch+'</string>';
+			lines[i+1] = '\t<string>http://'+config.serverAddress+'/feed?projectName='+this.projectName+'&amp;branchName='+this.branch+'</string>';
 			i++;
 		}
 		else if ( line.indexOf('CFBundleVersion') != -1 || line.indexOf('CFBundleShortVersionString') != -1 )

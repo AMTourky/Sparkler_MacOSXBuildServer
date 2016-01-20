@@ -51,7 +51,7 @@ server.get('/build', function (req, res, next)
 server.get('/feed', function (req, res, next) 
 {
 	var project = req.params.projectName;
-	var branch = req.params.branch;
+	var branch = req.params.branchName;
 
 	var feeder = new  Feeder(project, branch);
 	feeder.feed(function(xml)
