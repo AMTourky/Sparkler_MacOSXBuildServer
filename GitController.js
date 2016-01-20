@@ -279,7 +279,7 @@ GitController.prototype.getCommitIDWithTag = function(tag, callback)
 	{
 		if(error) 
 		{
-			callback(error);
+			callback(null, '');
 		}
 		else 
 		{
