@@ -220,6 +220,24 @@ GitController.prototype.getLastTag = function(callback)
 		callback(null, stdout);
 	});
 };
+// last tag which looks like (currentBranchName_build_version{m.m.b})
+GitController.prototype.getLastTagForCurrentBranch = function(callback)
+{
+	 this.executeCommand('git tag -l --sort=refname "'+this.branchName+'*" --sort=-version:refname', function(error, stdout) 	
+	{
+		stdout = stdout || '';
+		var lines = stdout.split("\n");
+		if (lines.length > 0)
+		{
+			var mostRecentTag = lines[0];
+			callback(null, mostRecentTag);
+		}
+		else
+		{
+			callback(null, '');
+		}
+	});
+};
 
 
 GitController.prototype.addTag = function(tag, callback)
