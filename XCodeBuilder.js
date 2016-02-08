@@ -126,7 +126,7 @@ XCodeBuilder.prototype.versionFromTag = function(tag)
 XCodeBuilder.prototype.tagFromVersion = function(version)
 {
 	// version(0.0.0)
-	return 'build_version{'+version.major+'.'+version.minor+'.'+version.batch+'}';
+	return this.branchName+'_build_version{'+version.major+'.'+version.minor+'.'+version.batch+'}';
 };
 
 XCodeBuilder.prototype.incrementedVersion = function()
