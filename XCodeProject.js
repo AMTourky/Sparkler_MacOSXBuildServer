@@ -77,53 +77,62 @@ XCodeProject.prototype.build = function(version, callback)
 
 XCodeProject.prototype.setBuildableFilePath = function(callback)
 {
-	var _this = this;
-	var walker = Walker.walk(this.projectDirectory, walkingOptions);
-	var dotXcodeRoot = '';
-	walker.on('file', function (root, fileStats, next) 
+	if (this.buildConfig && this.buildConfig.buildableFilePathRelative)
 	{
-		if (  Utilities.stringEndsWith(root, workspaceExtension) )
+		this.buildableFilePath = path.join(this.projectDirectory, this.buildConfig.buildableFilePathRelative);
+		console.log("found buildable path in project config: ", this.buildableFilePath);
+		callback();
+	}
+	else
+	{
+		var _this = this;
+		var walker = Walker.walk(this.projectDirectory, walkingOptions);
+		var dotXcodeRoot = '';
+		walker.on('file', function (root, fileStats, next) 
 		{
-			if ( dotXcodeRoot && root.indexOf(dotXcodeRoot) == -1)
+			if (  Utilities.stringEndsWith(root, workspaceExtension) )
 			{
-				// no, wrong file, it's a .xcworkspace inside the .xcodeproj
+				if ( dotXcodeRoot && root.indexOf(dotXcodeRoot) == -1)
+				{
+					// no, wrong file, it's a .xcworkspace inside the .xcodeproj
+					next();
+				}
+				_this.buildableFilePath = root;
+
+				console.log('Found the .xcworkspace');
+				callback();
+			}
+			else if ( Utilities.stringEndsWith(root, xcodeProjectExtension) )
+			{
+				console.log('Found the .xcodeproj');
+				_this.buildableFilePath = root;
+				dotXcodeRoot = root;
 				next();
 			}
-			_this.buildableFilePath = root;
+			else if ( _this.buildableFilePath && dotXcodeRoot && dotXcodeRoot != root )
+			{
+				console.log('We are waisting time here, stop walking looking for a work space!');
+				callback();
+			}
+			else
+			{
+				next();
+			}
 
-			console.log('Found the .xcworkspace');
-			callback();
-		}
-		else if ( Utilities.stringEndsWith(root, xcodeProjectExtension) )
+		});
+
+		walker.on('errors', function (root, nodeStatsArray, next) 
 		{
-			console.log('Found the .xcodeproj');
-			_this.buildableFilePath = root;
-			dotXcodeRoot = root;
-			next();
-		}
-		else if ( _this.buildableFilePath && dotXcodeRoot && dotXcodeRoot != root )
+			console.log('Error while walking into project directory!');
+			callback('Error while walking into project directory!');
+		});
+
+		walker.on('end', function () 
 		{
-			console.log('We are waisting time here, stop walking looking for a work space!');
-			callback();
-		}
-		else
-		{
-			next();
-		}
-
-	});
-
-	walker.on('errors', function (root, nodeStatsArray, next) 
-	{
-		console.log('Error while walking into project directory!');
-		callback('Error while walking into project directory!');
-	});
-
-	walker.on('end', function () 
-	{
-		callback('Buildable file not found!');
-		console.log('all done');
-	});
+			callback('Buildable file not found!');
+			console.log('all done');
+		});
+	}
 };
 
 
