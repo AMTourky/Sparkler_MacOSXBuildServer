@@ -90,8 +90,7 @@ XCodeBuilder.prototype.willGitProject = function(callback)
 XCodeBuilder.prototype.setVersion = function(callback)
 {
 	var _this = this;
-	var getTagFunction = (config.separateBranchVersioning) ? this.gitController.getLastTagForCurrentBranch : this.gitController.getLastTag;
-	getTagFunction(function(error, tag)
+	this.gitController.getLastTag(function(error, tag)
 	{
 		if (error)
 		{
@@ -113,15 +112,7 @@ XCodeBuilder.prototype.versionFromTag = function(tag)
 	tag = tag || '';
 	var obIndex = tag.indexOf('{');
 	var cbIndex = tag.indexOf('}');
-
-	var indexOfCurrentBranch = tag.indexOf(this.branchName);
-	var containsCurrentBranchName = indexOfCurrentBranch == 0;
-	if (config.separateBranchVersioning != true)
-	{
-		containsCurrentBranchName = true;
-	}
-
-	if (containsCurrentBranchName && obIndex != -1 && cbIndex != -1 && cbIndex > obIndex && tag.substring(obIndex+1, cbIndex))
+	if (obIndex != -1 && cbIndex != -1 && cbIndex > obIndex && tag.substring(obIndex+1, cbIndex))
 	{
 		var versionComponents = tag.substring(obIndex+1, cbIndex).split('.');
 		return {major: versionComponents[0], minor: versionComponents[1], batch: versionComponents[2]};

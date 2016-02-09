@@ -5,7 +5,7 @@ exports.config = {
     serverTimeoutInMins: 60,
     isHTTPS: false,
     serverPort: 4545,
-    separateBranchVersioning: false
+    serverAddress: null
 };
 
 
