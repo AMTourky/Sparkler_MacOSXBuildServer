@@ -195,7 +195,7 @@ GitController.prototype.checkout = function(callback)
 GitController.prototype.pull = function(callback)
 {
 	console.log('pulling');
-	this.executeCommand('git pull', function(error, stdout) 
+	this.executeCommand('git reset --hard ; git pull', function(error, stdout) 
 	{
 		console.log('git checkout: ' + stdout);
 		if(error) 
